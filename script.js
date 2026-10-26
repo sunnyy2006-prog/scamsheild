@@ -82,6 +82,23 @@ document.querySelector('#check-url-btn').addEventListener('click', () => checkUr
 const aiButton = document.querySelector('#ai-button');
 const aiStatus = document.querySelector('#ai-status');
 const aiOutput = document.querySelector('#ai-output');
+async function readGeminiStream(response, onText) {
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error || 'Gemini could not complete this request.');
+  }
+  if (!response.body) throw new Error('Your browser could not read the Gemini response.');
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let text = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    text += decoder.decode(value || new Uint8Array(), { stream: !done });
+    if (text) onText(text);
+    if (done) break;
+  }
+  return text.trim();
+}
 fetch('/api/status').then(response => response.json()).then(status => {
   aiStatus.textContent = status.configured
     ? 'Gemini is configured. Your submitted text or link will be sent to Gemini for this explanation.'
@@ -108,10 +125,12 @@ aiButton.addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, link, language: document.querySelector('#ai-language').value })
     });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'The AI service could not complete this request.');
-    aiOutput.textContent = data.explanation;
-    aiOutput.classList.add('show');
+    const explanation = await readGeminiStream(response, text => {
+      aiOutput.textContent = text;
+      aiOutput.classList.add('show');
+      aiStatus.textContent = 'Gemini is writing the explanation…';
+    });
+    if (!explanation) throw new Error('Gemini returned an empty explanation. Please try again.');
     aiStatus.textContent = 'AI explanation. Treat this as guidance, not a definitive safety verdict.';
   } catch (error) {
     aiStatus.textContent = error.message || 'Could not reach the AI server. Please try again.';
@@ -149,11 +168,14 @@ chatForm.addEventListener('submit', async event => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: chatHistory.slice(-10), language: document.querySelector('#ai-language').value })
     });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Could not get an AI reply.');
-    pendingBubble.remove();
-    chatHistory.push({ role: 'assistant', content: data.reply });
-    addChatBubble('assistant', data.reply);
+    const reply = await readGeminiStream(response, text => {
+      pendingBubble.className = 'chat-bubble assistant';
+      pendingBubble.textContent = text;
+    });
+    if (!reply) throw new Error('Gemini returned an empty reply. Please try again.');
+    pendingBubble.className = 'chat-bubble assistant';
+    pendingBubble.textContent = reply;
+    chatHistory.push({ role: 'assistant', content: reply });
   } catch (error) {
     pendingBubble.remove();
     chatHistory.pop();
