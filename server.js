@@ -18,7 +18,7 @@ try {
 
 const port = Number(process.env.PORT || 4173);
 const host = process.env.HOST || '127.0.0.1';
-const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 const mimeTypes = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8' };
 const requestLog = new Map();
 
