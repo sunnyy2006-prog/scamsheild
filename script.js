@@ -51,8 +51,13 @@ function checkUrl(showEmpty = false) {
     return;
   }
   let parsed;
+  const invalidAddress = () => {
+    urlResult.className = 'analysis-result show high';
+    urlResult.innerHTML = '<h3>This is not a supported web link</h3><p>Use an address starting with http:// or https://, or enter a domain such as example.com. Don’t open it if you’re unsure where it came from.</p>';
+  };
+  if (/^[a-z][a-z\d+.-]*:/i.test(raw) && !/^https?:\/\//i.test(raw)) { invalidAddress(); return; }
   try { parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`); }
-  catch { urlResult.className = 'analysis-result show high'; urlResult.innerHTML = '<h3>This does not look like a valid web address</h3><p>Check for typos. Don’t open it if you’re unsure where it came from.</p>'; return; }
+  catch { invalidAddress(); return; }
   if (!['http:', 'https:'].includes(parsed.protocol)) {
     urlResult.className = 'analysis-result show high';
     urlResult.innerHTML = '<h3>This link uses an unusual address format</h3><p>Only regular web links are supported here. Don’t open unexpected links.</p>';
@@ -188,11 +193,27 @@ chatForm.addEventListener('submit', async event => {
 });
 document.querySelector('#report-form').addEventListener('submit', e => {
   e.preventDefault();
-  if (!document.querySelector('#scam-type').value) return;
+  const type = document.querySelector('#scam-type').value;
+  if (!type) return;
+  const details = document.querySelector('#report-details').value.trim();
   const success = document.querySelector('#report-success');
-  success.textContent = 'Thanks for sharing a warning. This demo does not transmit or store your report.';
+  const summary = `ScamShield community warning\nCategory: ${type}${details ? `\nWhat happened: ${details}` : ''}\n\nThis summary was created on this device. It has not been submitted to ScamShield or an agency.`;
+  document.querySelector('#report-summary').value = summary;
+  document.querySelector('#report-summary-wrap').hidden = false;
+  success.textContent = 'Your summary is ready. Copy it if you want to share it; this site has not submitted it.';
   success.classList.add('show');
-  e.target.reset();
+});
+document.querySelector('#copy-report').addEventListener('click', async () => {
+  const summary = document.querySelector('#report-summary');
+  const status = document.querySelector('#report-copy-status');
+  try {
+    await navigator.clipboard.writeText(summary.value);
+    status.textContent = 'Copied to clipboard.';
+  } catch {
+    summary.focus();
+    summary.select();
+    status.textContent = 'Select and copy the summary above.';
+  }
 });
 const menuButton = document.querySelector('.menu-toggle');
 const nav = document.querySelector('.nav-links');
