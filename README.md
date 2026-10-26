@@ -9,6 +9,6 @@ A no-dependency local website with browser-based warning-sign checks and optiona
 3. Run `npm start` in this folder.
 4. Open <http://127.0.0.1:4173>.
 
-The basic message and link checks work without an API key. Gemini explanations and chat need a working API key and may incur API usage charges. AI requests send submitted messages and/or URLs to Google's Gemini API. The server does not save prompts or responses, and the chat history stays in browser memory for the current page session. The AI does not visit URLs or check a live threat database.
+The basic message and link checks work without an API key. Gemini explanations and chat need a working API key and may incur API usage charges. AI requests send submitted messages and/or URLs to Google's Gemini API. The server does not save prompts or responses, and the chat history stays in browser memory for the current page session. The AI does not visit URLs or check a live threat database. The scam report form creates a copyable summary on your device; it does not submit or save reports.
 
-For a public deployment, configure the key as a private server environment variable, use HTTPS, and add hosting-level abuse protection/rate limits. The included in-memory limit is intended only as a small local safeguard.
+For a public deployment, configure the key as a private server environment variable, use HTTPS, and add hosting-level abuse protection/rate limits. The included in-memory limit is intended only as a small local safeguard. The default server binds to `127.0.0.1` for local use and is not a public deployment configuration.
