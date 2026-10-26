@@ -84,7 +84,7 @@ const aiStatus = document.querySelector('#ai-status');
 const aiOutput = document.querySelector('#ai-output');
 fetch('/api/status').then(response => response.json()).then(status => {
   aiStatus.textContent = status.configured
-    ? 'AI is ready. Your submitted text or link will be sent to Gemini for this explanation.'
+    ? 'Gemini is configured. Your submitted text or link will be sent to Gemini for this explanation.'
     : 'To enable AI, add your API key to the private .env file on the server, then restart ScamShield.';
 }).catch(() => {
   aiStatus.textContent = 'Start ScamShield with “npm start” to use AI. Opening index.html directly does not run the secure AI server.';
